@@ -1,192 +1,552 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YasinTR Kod Paneli</title>
-
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 20px;
-      font-family: Arial, sans-serif;
-      background: var(--tg-theme-bg-color, #ffffff);
-      color: var(--tg-theme-text-color, #222222);
-    }
-
-    .container {
-      max-width: 500px;
-      margin: auto;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-
-    .card {
-      background: var(--tg-theme-secondary-bg-color, #f1f1f1);
-      border-radius: 15px;
-      padding: 20px;
-      margin-bottom: 15px;
-    }
-
-    .button {
-      width: 100%;
-      border: 0;
-      border-radius: 12px;
-      padding: 15px;
-      margin-top: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      background: var(--tg-theme-button-color, #2481cc);
-      color: var(--tg-theme-button-text-color, #ffffff);
-    }
-
-    .code {
-      font-size: 22px;
-      font-weight: bold;
-      letter-spacing: 2px;
-      text-align: center;
-      margin: 15px 0;
-    }
-
-    #user {
-      text-align: center;
-      margin-bottom: 20px;
-      opacity: 0.8;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YasinTR Bot Paneli</title>
+<style>
+:root {
+    color-scheme: dark;
+    --bg: #050607;
+    --panel: #111214;
+    --panel-2: #17191d;
+    --text: #f4f6fb;
+    --muted: #9ca3af;
+    --line: #272a31;
+    --accent: #e23b44;
+    --accent-2: #243b66;
+    --ok: #29c272;
+    --warn: #f4b740;
+    --danger: #e5484d;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at top left, #17213a 0, #07080b 34%, #050607 100%);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+}
+button, input, textarea { font: inherit; }
+.topbar {
+    min-height: 58px;
+    border-bottom: 1px solid #310e12;
+    background: #090a0c;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 10px 18px;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 210px;
+}
+.mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    background: var(--accent);
+    display: grid;
+    place-items: center;
+    font-weight: 900;
+}
+h1, h2, p { margin: 0; }
+h1 { font-size: 18px; letter-spacing: 0; }
+h2 { font-size: 14px; margin-bottom: 12px; color: #dfe4ef; }
+.sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+button {
+    min-height: 34px;
+    border: 1px solid #383d47;
+    border-radius: 6px;
+    padding: 0 12px;
+    color: #fff;
+    background: #232731;
+    cursor: pointer;
+    font-weight: 700;
+}
+button.primary { background: #8d1d28; border-color: #ad2c37; }
+button.blue { background: #1b345d; border-color: #285184; }
+button.danger { background: #612027; border-color: #8c2b34; }
+button:disabled { opacity: .55; cursor: wait; }
+.layout {
+    width: min(1260px, calc(100vw - 28px));
+    margin: 18px auto 34px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 390px;
+    gap: 14px;
+    align-items: start;
+}
+.stack { display: grid; gap: 14px; }
+.panel {
+    background: rgba(17, 18, 20, .96);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, .22);
+}
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+.stat {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #0f1012;
+    padding: 12px;
+    min-height: 76px;
+}
+.stat span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+.stat strong { display: block; font-size: 21px; line-height: 1; }
+.state {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 13px;
+}
+.dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--warn);
+}
+.dot.ok { background: var(--ok); }
+.dot.err { background: var(--danger); }
+.ports {
+    display: grid;
+    gap: 8px;
+}
+.port {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr) 96px;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #15171b;
+    padding: 10px;
+    font-size: 13px;
+}
+.pill {
+    justify-self: start;
+    border: 1px solid #3a403f;
+    border-radius: 999px;
+    padding: 4px 9px;
+    color: var(--muted);
+    font-size: 12px;
+}
+.pill.ok { color: var(--ok); border-color: #276a48; }
+.pill.err { color: var(--danger); border-color: #7a3135; }
+.logbox {
+    height: 440px;
+    overflow: auto;
+    border: 1px solid #20232a;
+    border-radius: 6px;
+    background: #090a0c;
+    padding: 10px;
+    font: 12px Consolas, monospace;
+    color: #d9f2df;
+    white-space: pre-wrap;
+}
+.logline { line-height: 1.45; }
+label {
+    display: block;
+    margin: 0 0 6px;
+    color: #cbd2de;
+    font-size: 12px;
+    font-weight: 700;
+}
+input, textarea {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid #313640;
+    border-radius: 6px;
+    padding: 9px 10px;
+    color: var(--text);
+    background: #0b0c0f;
+    outline: none;
+}
+textarea {
+    min-height: 76px;
+    resize: vertical;
+}
+input:focus, textarea:focus { border-color: #5b6f9b; }
+.fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 112px;
+    gap: 10px;
+}
+.field { margin-bottom: 12px; }
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.status {
+    min-height: 64px;
+    margin-top: 12px;
+    border: 1px solid #2b3039;
+    border-radius: 6px;
+    padding: 10px;
+    background: #0b0c0f;
+    color: #d7dce6;
+    white-space: pre-wrap;
+    font: 12px Consolas, monospace;
+}
+.status.ok { border-color: #276a48; color: var(--ok); }
+.status.err { border-color: #7a3135; color: var(--danger); }
+.sites {
+    display: grid;
+    gap: 8px;
+    max-height: 460px;
+    overflow: auto;
+}
+.site {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px;
+    background: #15171b;
+    cursor: pointer;
+}
+.site:hover { border-color: #46536b; }
+.site strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+.site span {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+    word-break: break-word;
+}
+@media (max-width: 940px) {
+    .topbar { align-items: stretch; flex-direction: column; }
+    .controls { justify-content: flex-start; }
+    .layout { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+    .fields { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: 1fr; }
+    .port { grid-template-columns: 1fr; }
+}
+</style>
 </head>
-
 <body>
+<header class="topbar">
+    <div class="brand">
+        <div class="mark">Y</div>
+        <div>
+            <h1>YasinTR Bot Paneli</h1>
+            <p class="sub" id="panelUrl">Panel yukleniyor...</p>
+        </div>
+    </div>
+    <div class="controls">
+        <button id="resume" class="primary">Tara ve Dinle</button>
+        <button id="scan" class="blue">Tekrar Tara</button>
+        <button id="pause" class="danger">Durdur</button>
+        <button id="clearCache">Cache Temizle</button>
+        <button id="refresh">Yenile</button>
+    </div>
+</header>
 
-<div class="container">
+<main class="layout">
+    <div class="stack">
+        <section class="metrics">
+            <div class="stat"><span>Bot Durumu</span><strong id="botState">...</strong></div>
+            <div class="stat"><span>Bagli Port</span><strong id="portCount">0</strong></div>
+            <div class="stat"><span>Kayitli Site</span><strong id="siteCount">0</strong></div>
+            <div class="stat"><span>Aktif Kod</span><strong id="activeCount">0</strong></div>
+        </section>
 
-  <h1>🔥 YasinTR Kod Paneli</h1>
+        <section class="panel">
+            <h2>Port Durumu</h2>
+            <div id="ports" class="ports"></div>
+        </section>
 
-  <div id="user">
-    Telegram bağlantısı bekleniyor...
-  </div>
-
-  <div class="card">
-    <h2>📥 Yeni Kod</h2>
-
-    <div class="code" id="code">
-      ABC123XYZ
+        <section class="panel">
+            <h2>Canli Log</h2>
+            <div id="logs" class="logbox"></div>
+        </section>
     </div>
 
-    <button class="button" onclick="copyCode()">
-      📋 Kodu Kopyala
-    </button>
-  </div>
+    <aside class="stack">
+        <section class="panel">
+            <h2>Site Yonetimi</h2>
+            <div class="fields">
+                <div class="field">
+                    <label for="site">Site adi</label>
+                    <input id="site" placeholder="grandpasha" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label for="code">Kod</label>
+                    <input id="code" placeholder="TESTKOD" autocomplete="off">
+                </div>
+                <div class="field">
+                    <label for="open_steps">Acilis tik</label>
+                    <input id="open_steps" type="number" min="0" max="5" value="0">
+                </div>
+            </div>
+            <div class="field">
+                <label for="keywords">Anahtar kelimeler</label>
+                <textarea id="keywords" placeholder="grandpasha, grand, gospft"></textarea>
+            </div>
+            <div class="field">
+                <label for="link">Link</label>
+                <input id="link" placeholder="https://site-linki.com" autocomplete="off">
+            </div>
+            <div class="actions">
+                <button id="capture" class="primary">Yakalamayi Baslat</button>
+                <button id="test" class="blue">Elle Kod Gonder</button>
+                <button id="delete" class="danger">Siteyi Sil</button>
+            </div>
+            <div id="status" class="status">Hazir.</div>
+        </section>
 
-  <div class="card">
-    <h2>🔎 Kod Ara</h2>
-
-    <input
-      id="search"
-      type="text"
-      placeholder="Kod yaz..."
-      style="
-        width:100%;
-        padding:14px;
-        border-radius:10px;
-        border:1px solid #ccc;
-        font-size:16px;
-      "
-    >
-
-    <button class="button" onclick="searchCode()">
-      🔎 Ara
-    </button>
-
-    <div id="result"></div>
-  </div>
-
-  <div class="card">
-
-    <button class="button" onclick="showHistory()">
-      📋 Kod Geçmişi
-    </button>
-
-    <button class="button" onclick="closeApp()">
-      ❌ Kapat
-    </button>
-
-  </div>
-
-</div>
+        <section class="panel">
+            <h2>Kayitli Siteler</h2>
+            <div id="sites" class="sites"></div>
+        </section>
+    </aside>
+</main>
 
 <script>
+const $ = (id) => document.getElementById(id);
+const statusBox = $("status");
+const busyButtons = ["capture", "test", "delete", "scan", "clearCache"].map($);
+let lastLogId = 0;
 
-const tg = window.Telegram.WebApp;
+const params = new URLSearchParams(location.search);
+const panelToken = params.get("token") || localStorage.getItem("botPanelToken") || "";
+if (panelToken) localStorage.setItem("botPanelToken", panelToken);
 
-tg.ready();
-tg.expand();
+const BOT_API_BASE =
+    new URLSearchParams(location.search).get("api")
+    || localStorage.getItem("botPanelApi")
+    || "http://127.0.0.1:8787";
 
-const user = tg.initDataUnsafe?.user;
-
-if (user) {
-  document.getElementById("user").innerText =
-    "👤 " + (user.first_name || "") +
-    (user.username ? " @" + user.username : "");
-} else {
-  document.getElementById("user").innerText =
-    "Telegram Mini App";
+function apiUrl(path) {
+    const url = new URL(path, BOT_API_BASE);
+    if (panelToken) url.searchParams.set("token", panelToken);
+    return url;
 }
 
-function copyCode() {
-
-  const code = document.getElementById("code").innerText;
-
-  navigator.clipboard.writeText(code);
-
-  tg.showPopup({
-    title: "Başarılı",
-    message: "Kod kopyalandı!",
-    buttons: [{type: "ok"}]
-  });
+function setStatus(text, kind) {
+    statusBox.textContent = text;
+    statusBox.className = "status" + (kind ? " " + kind : "");
 }
 
-function searchCode() {
-
-  const value =
-    document.getElementById("search").value.trim();
-
-  if (!value) {
-    tg.showAlert("Lütfen bir kod yaz.");
-    return;
-  }
-
-  document.getElementById("result").innerHTML =
-    "<p style='margin-top:15px;'>🔎 Aranan kod: <b>" +
-    value +
-    "</b></p>";
+function payload() {
+    return {
+        site: $("site").value.trim(),
+        keywords: $("keywords").value.trim(),
+        link: $("link").value.trim(),
+        code: $("code").value.trim(),
+        open_steps: Math.max(0, Math.min(5, parseInt($("open_steps").value || "0", 10) || 0))
+    };
 }
 
-function showHistory() {
+async function request(path, body) {
+    const res = await fetch(apiUrl(path), {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Panel-Token": panelToken
+        },
+        body: JSON.stringify(body || {})
+    });
+    const data = await res.json();
 
-  tg.showAlert(
-    "Kod geçmişi sistemi birazdan botuna bağlanacak."
-  );
+    if (!res.ok || !data.ok) {
+        throw new Error(data.error || data.message || "Islem basarisiz");
+    }
 
+    return data;
 }
 
-function closeApp() {
+async function getJson(path) {
+    const res = await fetch(apiUrl(path), {headers: {"X-Panel-Token": panelToken}});
+    const data = await res.json();
 
-  tg.close();
+    if (!res.ok || !data.ok) {
+        throw new Error(data.error || data.message || "Islem basarisiz");
+    }
 
+    return data;
 }
 
+async function poll(taskId) {
+    busyButtons.forEach((btn) => btn.disabled = true);
+
+    try {
+        while (true) {
+            const task = await getJson("/api/status?id=" + encodeURIComponent(taskId));
+            setStatus(task.message || "Calisiyor...");
+
+            if (task.status === "done") {
+                setStatus(task.message || "Tamamlandi.", "ok");
+                await Promise.all([loadDashboard(), loadSites()]);
+                return;
+            }
+
+            if (task.status === "error") {
+                setStatus(task.message || "Hata olustu.", "err");
+                return;
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 800));
+        }
+    } finally {
+        busyButtons.forEach((btn) => btn.disabled = false);
+    }
+}
+
+async function start(path, startMessage) {
+    try {
+        setStatus(startMessage);
+        const data = await request(path, payload());
+        setStatus(data.message || "Basladi.");
+
+        if (data.task_id) {
+            await poll(data.task_id);
+        } else {
+            await Promise.all([loadDashboard(), loadSites()]);
+        }
+    } catch (err) {
+        setStatus(err.message, "err");
+    }
+}
+
+async function control(action) {
+    try {
+        const data = await request("/api/control", {action});
+        setStatus(data.message || "Tamamlandi.", "ok");
+
+        if (data.task_id) {
+            await poll(data.task_id);
+        } else {
+            await loadDashboard();
+        }
+    } catch (err) {
+        setStatus(err.message, "err");
+    }
+}
+
+function renderPorts(ports) {
+    const wrap = $("ports");
+    wrap.innerHTML = "";
+
+    for (const port of ports || []) {
+        const item = document.createElement("div");
+        item.className = "port";
+        item.innerHTML = `
+            <strong>${port.name}</strong>
+            <span>${port.address} / sekme: ${port.tabs}</span>
+            <span class="pill ${port.connected ? "ok" : "err"}">${port.connected ? "BAGLI" : "KOPUK"}</span>
+        `;
+        wrap.appendChild(item);
+    }
+
+    if (!wrap.children.length) {
+        wrap.textContent = "Port tanimli degil.";
+    }
+}
+
+async function loadDashboard() {
+    const data = await getJson("/api/dashboard");
+    $("botState").textContent = data.bot_paused ? "DURDU" : "AKTIF";
+    $("portCount").textContent = data.connected_ports + "/" + data.total_ports;
+    $("siteCount").textContent = data.sites_count;
+    $("activeCount").textContent = data.active_codes;
+    $("panelUrl").textContent = data.panel_url;
+    $("resume").disabled = !data.bot_paused;
+    $("pause").disabled = data.bot_paused;
+    renderPorts(data.ports);
+}
+
+async function loadLogs() {
+    const data = await getJson("/api/logs?after=" + encodeURIComponent(lastLogId));
+    const wrap = $("logs");
+
+    for (const line of data.logs || []) {
+        const div = document.createElement("div");
+        div.className = "logline";
+        div.textContent = line.text;
+        wrap.appendChild(div);
+        lastLogId = Math.max(lastLogId, line.id);
+    }
+
+    while (wrap.children.length > 260) {
+        wrap.removeChild(wrap.firstChild);
+    }
+
+    if (data.logs && data.logs.length) {
+        wrap.scrollTop = wrap.scrollHeight;
+    }
+}
+
+async function loadSites() {
+    const data = await getJson("/api/sites");
+    const wrap = $("sites");
+    wrap.innerHTML = "";
+
+    for (const site of data.sites || []) {
+        const item = document.createElement("div");
+        item.className = "site";
+        item.innerHTML = `<strong>${site.name}</strong><span>${(site.detect || []).join(", ")}</span>`;
+        item.addEventListener("click", () => {
+            $("site").value = site.name;
+            $("keywords").value = (site.detect || []).join(", ");
+        });
+        wrap.appendChild(item);
+    }
+
+    if (!wrap.children.length) {
+        wrap.textContent = "Kayitli site yok.";
+    }
+}
+
+$("resume").addEventListener("click", () => control("resume"));
+$("pause").addEventListener("click", () => control("pause"));
+$("scan").addEventListener("click", () => control("scan"));
+$("clearCache").addEventListener("click", () => control("clear_cache"));
+$("refresh").addEventListener("click", () => Promise.all([loadDashboard(), loadSites(), loadLogs()]));
+
+$("capture").addEventListener("click", () => {
+    const steps = payload().open_steps;
+    const message = steps > 0
+        ? `Chrome'da once ${steps} acilis tiklamasini, sonra kod kutusunu ve butonu sec.`
+        : "Chrome'da once kod kutusuna, sonra butona tikla.";
+    start("/api/capture", message);
+});
+
+$("test").addEventListener("click", () => start("/api/test", "Kod gonderiliyor..."));
+
+$("delete").addEventListener("click", () => {
+    if (confirm("Bu site silinsin mi?")) {
+        start("/api/delete", "Site siliniyor...");
+    }
+});
+
+Promise.all([loadDashboard(), loadSites(), loadLogs()])
+    .catch((err) => setStatus(err.message, "err"));
+setInterval(() => loadDashboard().catch(() => {}), 2000);
+setInterval(() => loadLogs().catch(() => {}), 1000);
 </script>
-
 </body>
 </html>

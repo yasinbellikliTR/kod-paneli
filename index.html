@@ -331,9 +331,8 @@ const statusBox = $("status");
 const busyButtons = ["capture", "test", "delete", "scan", "clearCache"].map($);
 let lastLogId = 0;
 
-const params = new URLSearchParams(location.search);
-const panelToken = params.get("token") || localStorage.getItem("botPanelToken") || "";
-if (panelToken) localStorage.setItem("botPanelToken", panelToken);
+const panelToken = sessionStorage.getItem("botPanelToken") || prompt("Panel şifresini girin:") || "";
+if (panelToken) sessionStorage.setItem("botPanelToken", panelToken);
 
 function apiUrl(path) {
     // GitHub Pages statik oldugu icin API istegi GitHub alanina degil
@@ -371,6 +370,7 @@ async function request(path, body) {
     const data = await res.json();
 
     if (!res.ok || !data.ok) {
+        if (res.status === 401) sessionStorage.removeItem("botPanelToken");
         throw new Error(data.error || data.message || "Islem basarisiz");
     }
 
@@ -382,6 +382,7 @@ async function getJson(path) {
     const data = await res.json();
 
     if (!res.ok || !data.ok) {
+        if (res.status === 401) sessionStorage.removeItem("botPanelToken");
         throw new Error(data.error || data.message || "Islem basarisiz");
     }
 

@@ -337,7 +337,7 @@ if (panelToken) sessionStorage.setItem("botPanelToken", panelToken);
 function apiUrl(path) {
     // GitHub Pages statik oldugu icin API istegi GitHub alanina degil
     // Cloudflare Tunnel uzerinden calisan Python paneline gider.
-    const base = "https://racks-classic-modern-grab.trycloudflare.com";
+    const base = "https://bills-kinds-constitute-dock.trycloudflare.com";
     const url = new URL(path, base + "/");
     if (panelToken) url.searchParams.set("token", panelToken);
     return url;

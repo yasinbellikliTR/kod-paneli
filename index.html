@@ -80,6 +80,10 @@ button.primary { background: #8d1d28; border-color: #ad2c37; }
 button.blue { background: #1b345d; border-color: #285184; }
 button.danger { background: #612027; border-color: #8c2b34; }
 button:disabled { opacity: .55; cursor: wait; }
+.admin-only { display: none !important; }
+body.admin-mode .admin-only { display: inline-flex !important; }
+.admin-badge { color: var(--muted); font-size: 12px; }
+
 .layout {
     width: min(1260px, calc(100vw - 28px));
     margin: 18px auto 34px;
@@ -257,10 +261,13 @@ input:focus, textarea:focus { border-color: #5b6f9b; }
         </div>
     </div>
     <div class="controls">
-        <button id="resume" class="primary">Tara ve Dinle</button>
-        <button id="scan" class="blue">Tekrar Tara</button>
-        <button id="pause" class="danger">Durdur</button>
-        <button id="clearCache">Cache Temizle</button>
+        <span id="accessMode" class="admin-badge">İzleme modu</span>
+        <button id="login" class="blue">Yönetici Girişi</button>
+        <button id="logout" class="admin-only">Çıkış</button>
+        <button id="resume" class="primary admin-only">Tara ve Dinle</button>
+        <button id="scan" class="blue admin-only">Tekrar Tara</button>
+        <button id="pause" class="danger admin-only">Durdur</button>
+        <button id="clearCache" class="admin-only">Cache Temizle</button>
         <button id="refresh">Yenile</button>
     </div>
 </header>
@@ -288,7 +295,7 @@ input:focus, textarea:focus { border-color: #5b6f9b; }
     <aside class="stack">
         <section class="panel">
             <h2>Site Yonetimi</h2>
-            <div class="fields">
+            <div class="fields admin-only">
                 <div class="field">
                     <label for="site">Site adi</label>
                     <input id="site" placeholder="grandpasha" autocomplete="off">
@@ -302,15 +309,15 @@ input:focus, textarea:focus { border-color: #5b6f9b; }
                     <input id="open_steps" type="number" min="0" max="5" value="0">
                 </div>
             </div>
-            <div class="field">
+            <div class="field admin-only">
                 <label for="keywords">Anahtar kelimeler</label>
                 <textarea id="keywords" placeholder="grandpasha, grand, gospft"></textarea>
             </div>
-            <div class="field">
+            <div class="field admin-only">
                 <label for="link">Link</label>
                 <input id="link" placeholder="https://site-linki.com" autocomplete="off">
             </div>
-            <div class="actions">
+            <div class="actions admin-only">
                 <button id="capture" class="primary">Yakalamayi Baslat</button>
                 <button id="test" class="blue">Elle Kod Gonder</button>
                 <button id="delete" class="danger">Siteyi Sil</button>
@@ -331,8 +338,8 @@ const statusBox = $("status");
 const busyButtons = ["capture", "test", "delete", "scan", "clearCache"].map($);
 let lastLogId = 0;
 
-const panelToken = sessionStorage.getItem("botPanelToken") || prompt("Panel şifresini girin:") || "";
-if (panelToken) sessionStorage.setItem("botPanelToken", panelToken);
+let panelToken = sessionStorage.getItem("botPanelToken") || "";
+let adminMode = false;
 
 function apiUrl(path) {
     // GitHub Pages statik oldugu icin API istegi GitHub alanina degil
@@ -359,6 +366,7 @@ function payload() {
 }
 
 async function request(path, body) {
+    if (!panelToken) throw new Error("Yönetici girişi gerekli.");
     const res = await fetch(apiUrl(path), {
         method: "POST",
         headers: {
@@ -368,24 +376,21 @@ async function request(path, body) {
         body: JSON.stringify(body || {})
     });
     const data = await res.json();
-
     if (!res.ok || !data.ok) {
-        if (res.status === 401) sessionStorage.removeItem("botPanelToken");
-        throw new Error(data.error || data.message || "Islem basarisiz");
+        if (res.status === 401) logout();
+        throw new Error(data.error || data.message || "İşlem başarısız");
     }
-
     return data;
 }
 
 async function getJson(path) {
-    const res = await fetch(apiUrl(path), {headers: {"X-Panel-Token": panelToken}});
+    const headers = panelToken ? {"X-Panel-Token": panelToken} : {};
+    const res = await fetch(apiUrl(path), {headers});
     const data = await res.json();
-
     if (!res.ok || !data.ok) {
-        if (res.status === 401) sessionStorage.removeItem("botPanelToken");
-        throw new Error(data.error || data.message || "Islem basarisiz");
+        if (res.status === 401) logout();
+        throw new Error(data.error || data.message || "İşlem başarısız");
     }
-
     return data;
 }
 
@@ -429,6 +434,35 @@ async function start(path, startMessage) {
     } catch (err) {
         setStatus(err.message, "err");
     }
+}
+
+async function login() {
+    const token = prompt("Yönetici tokenini girin:");
+    if (!token) return;
+    try {
+        const res = await fetch(apiUrl("/api/auth"), {headers: {"X-Panel-Token": token}});
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Token hatalı.");
+        panelToken = token;
+        sessionStorage.setItem("botPanelToken", token);
+        adminMode = true;
+        document.body.classList.add("admin-mode");
+        $("accessMode").textContent = "Yönetici modu";
+        setStatus("Yönetici girişi başarılı.", "ok");
+    } catch (err) {
+        panelToken = "";
+        sessionStorage.removeItem("botPanelToken");
+        setStatus(err.message, "err");
+    }
+}
+
+function logout() {
+    panelToken = "";
+    adminMode = false;
+    sessionStorage.removeItem("botPanelToken");
+    document.body.classList.remove("admin-mode");
+    $("accessMode").textContent = "İzleme modu";
+    setStatus("İzleme moduna geçildi.", "ok");
 }
 
 async function control(action) {
@@ -520,6 +554,8 @@ async function loadSites() {
     }
 }
 
+$("login").addEventListener("click", login);
+$("logout").addEventListener("click", logout);
 $("resume").addEventListener("click", () => control("resume"));
 $("pause").addEventListener("click", () => control("pause"));
 $("scan").addEventListener("click", () => control("scan"));
@@ -542,8 +578,26 @@ $("delete").addEventListener("click", () => {
     }
 });
 
-Promise.all([loadDashboard(), loadSites(), loadLogs()])
-    .catch((err) => setStatus(err.message, "err"));
+async function init() {
+    if (panelToken) {
+        try {
+            const res = await fetch(apiUrl("/api/auth"), {headers: {"X-Panel-Token": panelToken}});
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                adminMode = true;
+                document.body.classList.add("admin-mode");
+                $("accessMode").textContent = "Yönetici modu";
+            } else {
+                logout();
+            }
+        } catch (_) {
+            logout();
+        }
+    }
+    await Promise.all([loadDashboard(), loadSites(), loadLogs()]);
+}
+
+init().catch((err) => setStatus(err.message, "err"));
 setInterval(() => loadDashboard().catch(() => {}), 2000);
 setInterval(() => loadLogs().catch(() => {}), 1000);
 </script>

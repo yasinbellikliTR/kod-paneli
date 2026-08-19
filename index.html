@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YasinTR Kod Paneli</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: var(--tg-theme-bg-color, #ffffff);
+      color: var(--tg-theme-text-color, #222222);
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: var(--tg-theme-secondary-bg-color, #f1f1f1);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 15px;
+    }
+
+    .button {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      background: var(--tg-theme-button-color, #2481cc);
+      color: var(--tg-theme-button-text-color, #ffffff);
+    }
+
+    .code {
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-align: center;
+      margin: 15px 0;
+    }
+
+    #user {
+      text-align: center;
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>🔥 YasinTR Kod Paneli</h1>
+
+  <div id="user">
+    Telegram bağlantısı bekleniyor...
+  </div>
+
+  <div class="card">
+    <h2>📥 Yeni Kod</h2>
+
+    <div class="code" id="code">
+      ABC123XYZ
+    </div>
+
+    <button class="button" onclick="copyCode()">
+      📋 Kodu Kopyala
+    </button>
+  </div>
+
+  <div class="card">
+    <h2>🔎 Kod Ara</h2>
+
+    <input
+      id="search"
+      type="text"
+      placeholder="Kod yaz..."
+      style="
+        width:100%;
+        padding:14px;
+        border-radius:10px;
+        border:1px solid #ccc;
+        font-size:16px;
+      "
+    >
+
+    <button class="button" onclick="searchCode()">
+      🔎 Ara
+    </button>
+
+    <div id="result"></div>
+  </div>
+
+  <div class="card">
+
+    <button class="button" onclick="showHistory()">
+      📋 Kod Geçmişi
+    </button>
+
+    <button class="button" onclick="closeApp()">
+      ❌ Kapat
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+
+const tg = window.Telegram.WebApp;
+
+tg.ready();
+tg.expand();
+
+const user = tg.initDataUnsafe?.user;
+
+if (user) {
+  document.getElementById("user").innerText =
+    "👤 " + (user.first_name || "") +
+    (user.username ? " @" + user.username : "");
+} else {
+  document.getElementById("user").innerText =
+    "Telegram Mini App";
+}
+
+function copyCode() {
+
+  const code = document.getElementById("code").innerText;
+
+  navigator.clipboard.writeText(code);
+
+  tg.showPopup({
+    title: "Başarılı",
+    message: "Kod kopyalandı!",
+    buttons: [{type: "ok"}]
+  });
+}
+
+function searchCode() {
+
+  const value =
+    document.getElementById("search").value.trim();
+
+  if (!value) {
+    tg.showAlert("Lütfen bir kod yaz.");
+    return;
+  }
+
+  document.getElementById("result").innerHTML =
+    "<p style='margin-top:15px;'>🔎 Aranan kod: <b>" +
+    value +
+    "</b></p>";
+}
+
+function showHistory() {
+
+  tg.showAlert(
+    "Kod geçmişi sistemi birazdan botuna bağlanacak."
+  );
+
+}
+
+function closeApp() {
+
+  tg.close();
+
+}
+
+</script>
+
+</body>
+</html>

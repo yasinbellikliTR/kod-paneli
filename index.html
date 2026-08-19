@@ -336,9 +336,7 @@ const panelToken = params.get("token") || localStorage.getItem("botPanelToken") 
 if (panelToken) localStorage.setItem("botPanelToken", panelToken);
 
 const BOT_API_BASE =
-    new URLSearchParams(location.search).get("api")
-    || localStorage.getItem("botPanelApi")
-    || "http://127.0.0.1:8787";
+    "https://barcelona-vat-heads-production.trycloudflare.com";
 
 function apiUrl(path) {
     const url = new URL(path, BOT_API_BASE);

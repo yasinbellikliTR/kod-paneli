@@ -335,11 +335,11 @@ const params = new URLSearchParams(location.search);
 const panelToken = params.get("token") || localStorage.getItem("botPanelToken") || "";
 if (panelToken) localStorage.setItem("botPanelToken", panelToken);
 
-const BOT_API_BASE =
-    "https://definitions-copied-idaho-grad.trycloudflare.com";
-
 function apiUrl(path) {
-    const url = new URL(path, BOT_API_BASE);
+    // GitHub Pages statik oldugu icin API istegi GitHub alanina degil
+    // Cloudflare Tunnel uzerinden calisan Python paneline gider.
+    const base = "https://definitions-copied-idaho-grad.trycloudflare.com";
+    const url = new URL(path, base + "/");
     if (panelToken) url.searchParams.set("token", panelToken);
     return url;
 }
